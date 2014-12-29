@@ -367,7 +367,10 @@ class Introspector(object):
         return self.metadata.database.database
 
     def get_database_kwargs(self):
-        return self.metadata.database.connect_kwargs
+        database_kwargs = dict(self.metadata.database.connect_kwargs)
+        if self.schema:
+            database_kwargs.update(schema=self.schema)
+        return database_kwargs
 
     def make_model_name(self, table):
         model = re.sub('[^\w]+', '', table)
@@ -381,10 +384,10 @@ class Introspector(object):
 
     def introspect(self, table_names=None):
         # Retrieve all the tables in the database.
-        if not self.schema:
-            tables = self.metadata.database.get_tables()  # Use default schema.
+        if self.schema:
+            tables = self.metadata.database.get_tables(schema=self.schema)
         else:
-            tables = self.metadata.database.get_tables(self.schema)
+            tables = self.metadata.database.get_tables()
 
         if table_names is not None:
             tables = [table for table in tables if table in table_names]
